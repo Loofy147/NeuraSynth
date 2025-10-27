@@ -1,0 +1,10 @@
+Flask
+Flask-CORS
+psycopg2-binary
+PyJWT
+bcrypt
+gunicorn
+scikit-learn
+numpy
+pandas
+

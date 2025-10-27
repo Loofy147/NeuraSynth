@@ -1,0 +1,94 @@
+AI Fusion Architecture – ■■■■■■■ ■■■■■■■■ ■■■■■■■■■
+1. ■■■■■■ ■■■■■■■■
+■■■■ ■■■ ■■■■■ ■■■■■■ ■■■■■■■ ■■■■■ AI Fusion Architecture ■■■■■■■■■ ■■■■:
+- ■■■ ■■■■■■ ■■■■■■
+- ■■■■■■ ■■■■■■■■ ■■■■■■ ■■■■■■■■■
+- ■■■■■■ ■■■■■■ ■■■■■■■
+- ■■■■ ■■■■■■■■ ■■■■■■■■■
+- ■■■■■■■ ■■■■■■■■■■■
+- ■■■■■■ ■■■■■■■ ■■■■■■■■ ■■■■■■ ■■■■■■■■
+- ■■■■■ ■■■■■■■■ ■■■■■■■■
+- ■■■■■ ■■■■■■ ■■■■■■■
+
+2. ■■■ ■■■■■■ ■■■■■■
+AI Fusion Architecture ■■ ■■■■ ■■■ ■■■■ ■■■ Microservices ■■■■ ■■■■■■ ■■■■■■■■ ■■■
+1. ■■■■■ ■■■■■■■ ■■■■ ■■■■■■ ■■ ■■■ ■■■■■■■ ■■■■■
+2. ■■■■■ ■■■ ■■■■■■ ■■■■■■■■ ■■ ■■■■■ ■■■■■■ ■■■■■■ ■■■■■■
+3. ■■■■ ■■■ ■■■■■■■■ ■■■■■■■■ ■■■ ■■■■■ ■■■■■■■■
+4. ■■■■■ ■■■■■■ ■■■■■ ■■■■■■■■■■ ■■■■■■
+5. ■■■■■ ■■■ ■■ ■■■■■ ■■■■■■ ■■■■■■■ ■■■■■■ ■■■■■■
+
+3. ■■■■■■ ■■■■■■■■ ■■■■■■■■ ■■■■■■■
+■■■■■■ | ■■■■■■■■ | ■■■■■
+■■■■■■■ ■■■■■■■■ | Microservices + DDD + Hexagonal + Event Sourcing + CQRS | ■■■ ■■■■■
+Go | ETL■ API Gateway■ Coordination | ■■■■ I/O ■■■■■■ ■■ ■■■■■■■ ■■ ■■■■■■■
+Rust | Inference Engine■ Feature Extraction | ■■■■ ■■■■■■■ ■■■■■ ■■■■ ■■■■■■■■■■■ ■■
+Python | R&D■ Model Training | ■■■■ ■■■■■■ ML/AI (scikit-learn■ PyTorch■ TensorFlow)
+TypeScript | Frontend (React/Vue) | ■■■■■ ■■■■■■ ■■■■ ■■■■■■ ■■■■■■ ■■■■■■■
+Kubernetes | Orchestration | ■■■■■ ■■■■■■■■■ ■■■■■■ ■■■■■■■■■ ■■■■■■ ■■■■
+Kafka | Event Bus | ■■■■ ■■■■■ ■■■ ■■■■■■■ ■■■■ ■■■■■■■ ■■■ ■■■■■■■
+Redis | Caching | ■■■■■ ■■■■■■ ■■■■■■■■■■ ■■■■■■■
+
+4. ■■■■■■ ■■■■■■ ■■■■■■■
+■■■■■■ | ■■■■■■ / ■■■■■■ | ■■■■■■■ | ■■■■■
+Data Ingestion | ETL Service | Go | ■■■ ■■■■■■■■ ■■ APIs■ Kafka■ ■■■■■ ■■■■■■■■
+| Data Validation & Profiling | Python | ■■■■■ ■■■■ ■■■■■■■■ ■■■■■■ ■■■■■■■
+Transformation | Feature Extraction Service | Rust | ■■■■■■■ ■■■■■■■ ■■■■■■■■ ■■■■■ ■■■
+Training | Model Training Orchestrator | Python + Kubernetes | ■■■■■ ■■■■■ ML■ ■■■ ■■■■■■■
+Inference | Inference Engine | Rust | ■■■■■■■ ■■■■■ ■■■■■■ ■■■ CPU/GPU
+| Inference API Gateway | Go | ■■■■■■■ ■■■■■ ■■■■■■■■■ ■■■■■■■■
+Backend API | Core Business Logic Service | Go | ■■■■■ ■■■■■ ■■■■■■ ■■■■■ DB■ Auth
+| gRPC-gateway / REST API | Go | ■■■■■ gRPC ■■■ REST ■■■■■■■ ■■■■■■■■
+Frontend | Web Application (React/Vue) | TypeScript | ■■■■■ ■■■■■■■■ ■■■■■■■■■
+Messaging | Event Bus | Kafka | ■■■/■■■■■■ ■■■■■ ■■■■■■
+Caching | Redis | Redis | ■■■■■ ■■■■ ■■■■■■■■ ■■■■■■■■ ■■■■■■■■■ ■■■■■■■
+Orchestration | Service Mesh + Discovery | Istio/Linkerd | ■■■■■ ■■■■■■■■■■ ■■■■■■ ■■■■■■
+CI/CD | Pipeline | GitHub Actions/Jenkins | ■■■■■ ■■■■■■■ ■■■ ■■■■■■
+Observability | Metrics, Logging, Tracing | Prometheus, Grafana, ELK, Jaeger | ■■■■■■ ■■■■■■ ■■
+
+5. ■■■■ ■■■■■■■■ ■■■■■■■■■
+1. ■■■■■■■ (Ingestion): ■■■■ ETL Service ■■■■■■ ■■■■■ → ■■■■ ■■■ DataReady ■■■ Kaf
+2. ■■■■■■ ■■■■■■■■: Data Validation Service ■■■■■ ■■■■■ → ■■■■ DataValidated.
+
+3. ■■■■■■■ ■■■■■■■: Feature Extraction ■■■■■■ DataValidated → ■■■■ FeaturesReady.
+4. ■■■■■■■: Model Training Orchestrator ■■■■■■ FeaturesReady → ■■■■ ■■■■■ ML → ■■■■
+5. ■■■■■: ■■■ ■■■■ ■■■■■■■■ ■■■■ ■■■ ModelTrained.
+6. ■■■■■■■■■: ■■■■■ ■■■ API ■■■■■■ ■■■ ■■■■■■■ → ■■■■■ ■■■ Inference Engine →
+7. ■■■■■■■■: ■■ ■■■■ ■■■■■ Metrics ■Logs ■■■■■■ ■■■ Trace ID ■■■■.
+
+6. ■■■■■■■ ■■■■■■■■■■■
+■■■■■ | ■■■■■■■■■■
+Product Owner | ■■■■■ ■■■■■■■■■ ■■■■■■ ■■■■■■■■■ ■■■■■ ■■■■■■■■ ■■■■■■■
+ML Engineer | ■■■■■ ■■■■■■ ■■■■■■■ ■■■■ ■■■■■■■ ■■■■■■■ ■■■■■■ ■■■ Python
+Data Engineer | ■■■■ ■■■■■ ETL■ ■■■■ ■■■■ ■■■■■■■■ ■■■■■■■■ ■■ ■■■■■■■ ■■■
+Backend Engineer | ■■■■■ Microservices ■■■■ Go■ ■■■■■ gRPC/REST APIs ■■■■■■■■
+Rust Developer | ■■■■■ ■■■■■■ ■■■■■ ■■■■■■ ■■■■■■ ■■■■■■■ ■■■ Inference ■Featu
+Frontend Developer | ■■■■ ■■■■■■ ■■■■■■■ ■■■■■■ ■■ API ■■■■■■■■ TypeScript
+DevOps Engineer | ■■■■■ CI/CD■ ■■■■■ Kubernetes■ ■■■■■ ■■■■■ ■■■■■■■
+SRE | ■■■■■■ ■■■■■■■ ■■■■■ ■■■■■■■■ ■■■■■ ■■■■■■■■■
+Security Engineer | ■■■■■ ■■■■■■ ■■■■■■■■ ■■■■■■■■■ ■■■■■■■■ ■■■■■ ■■■■■■■
+7. ■■■■■■ ■■■■■■■■■■
+- mTLS ■■■■■ ■■■■■■■ ■■■■■■■ ■■■ Istio.
+- OAuth2/JWT ■■■■■■ ■■■■■■■ ■■■■■■■■ ■■■■■■■■.
+- Network Policies ■■■■ ■■■■■■ ■■■ ■■■■■■.
+- Falco ■■■■■■■ ■■■■■■ ■■■■■■■ ■■ ■■■■■■■■.
+- Vault ■■■■■■ ■■■■■■■ ■■ ■■■■■ at rest.
+8. ■■■■■■■■ ■■■■■■■■■
+- Metrics: ■■■ ■■■ OpenTelemetry → Prometheus
+- Dashboards: Grafana Heatmaps ■■■■■ ■■■Latency
+- Logging: JSON ■■■■■ → ELK Stack
+- Tracing: Jaeger ■■■■■ ■■■■■ ■■■■■
+- Alerts: ■■■■■■■ ■■■ ■■■■■ SLOs (CPU, Latency, Error Rate)
+
+9. ■■■■■ ■■■■■■ ■■■■■■■
+■■■■■■■ | ■■■■■■■■■ | ■■■■■■■■ ■■■■■■■■
+0 | Scaffolding & CI/CD | ■■■■■ ■■■■■■■■ Pipeline ■■■■■■■ ■■■■■ Kubernetes
+1 | Ingestion & Validation | ETL ■■■■ Go■ Data Validation■ Kafka setup
+2 | Feature Extraction | ■■■■ Rust ■■■■■■■■ ■■■■■■■ + Adapter ■■■■■ ■■ Go
+3 | Training Pipeline | Orchestrator Python + MLflow + GPU scheduling
+4 | Inference & API | Inference Engine Rust + API Gateway Go + Caching Redis
+5 | Frontend & BFF | Web App TS + GraphQL BFF
+6 | Observability & Sec | Prometheus, Grafana, ELK, Jaeger, Istio mTLS, Vault
+7 | ■■■■■■■ ■■■■■■■■ | ■■■■■ ■■■■■■■■ ■■■■■■■■ ■■■■■■■■■ ■■■■■■ ■■■■■
+
+
