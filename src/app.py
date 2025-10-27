@@ -33,4 +33,7 @@ def create_app(config_name='default'):
     from .contributors import contributors as contributors_blueprint
     app.register_blueprint(contributors_blueprint, url_prefix='/api/v1/contributors')
 
+    from .automation_blueprint import automation_bp
+    app.register_blueprint(automation_bp, url_prefix='/api/v1/automation')
+
     return app

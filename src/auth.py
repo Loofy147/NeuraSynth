@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 import jwt
 import datetime
-import bcrypt
 import uuid
 import json
 from .models import db, User
@@ -12,12 +11,6 @@ class AuthManager:
     """
     Enhanced Authentication Manager for NeuraSynth Studios
     """
-
-    def __init__(self):
-        """
-        Initialize the authentication manager
-        """
-        self.salt_rounds = 12
 
     def register_user(self, email, password, user_type, profile_data=None):
         """

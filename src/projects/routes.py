@@ -2,6 +2,8 @@ from flask import request, jsonify
 from . import projects
 from ..project import ProjectManager
 from ..utils import ai_matching_engine, token_required
+from ..automation_blueprint import automation_engine
+import asyncio
 
 project_manager = ProjectManager()
 
@@ -22,6 +24,12 @@ def create_project(current_user_id):
 
         if result['success']:
             project_id = result['project_id']
+
+            # Trigger project creation event
+            asyncio.run(automation_engine.trigger_event(
+                'project_created',
+                {'project_id': project_id, 'client_id': current_user_id}
+            ))
 
             # Trigger AI matching for the new project
             try:
