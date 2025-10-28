@@ -1,12 +1,27 @@
 from flask import Flask
+import json
 from flask_cors import CORS
 from .config import config
+from datetime import date
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            if isinstance(obj, date):
+                return obj.isoformat()
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return json.JSONEncoder.default(self, obj)
 
 def create_app(config_name='default'):
     """
     Creates and configures a Flask application instance.
     """
     app = Flask(__name__)
+    app.json_encoder = CustomJSONEncoder
 
     # Load configuration
     app.config.from_object(config[config_name])
@@ -35,5 +50,8 @@ def create_app(config_name='default'):
 
     from .automation_blueprint import automation_bp
     app.register_blueprint(automation_bp, url_prefix='/api/v1/automation')
+
+    from .financial_blueprint import financial_bp
+    app.register_blueprint(financial_bp, url_prefix='/api/v1/financial')
 
     return app

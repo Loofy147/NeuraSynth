@@ -37,3 +37,12 @@ python -m unittest discover tests
 -   `DELETE /api/v1/automation/rules/<rule_id>`: Remove an automation rule.
 -   `GET /api/v1/automation/stats`: Get automation engine statistics.
 -   `POST /api/v1/projects/<project_id>/monitor`: Analyze and report project health.
+
+### Financial
+
+-   `POST /api/v1/financial/expenses`: Create a new expense.
+-   `GET /api/v1/financial/expenses/<expense_id>`: Get an expense by ID.
+-   `POST /api/v1/financial/invoices`: Create a new invoice.
+-   `GET /api/v1/financial/invoices/<invoice_id>`: Get an invoice by ID.
+-   `POST /api/v1/financial/payments`: Create a new payment.
+-   `GET /api/v1/financial/payments/<payment_id>`: Get a payment by ID.
