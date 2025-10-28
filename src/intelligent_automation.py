@@ -10,11 +10,10 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Callable
 from enum import Enum
-import numpy as np
-from dataclasses import dataclass
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from .models import db, AutomationRule, SmartNotification, Project
 
 class AutomationTrigger(Enum):
     """Types of automation triggers"""
@@ -32,48 +31,34 @@ class NotificationPriority(Enum):
     HIGH = "high"
     CRITICAL = "critical"
 
-@dataclass
-class AutomationRule:
-    """Represents an automation rule"""
-    id: str
-    name: str
-    trigger_type: AutomationTrigger
-    conditions: Dict[str, Any]
-    actions: List[Dict[str, Any]]
-    is_active: bool = True
-    created_at: datetime = None
-    last_executed: datetime = None
-    execution_count: int = 0
-
-@dataclass
-class SmartNotification:
-    """Represents a smart notification"""
-    id: str
-    recipient_id: str
-    title: str
-    message: str
-    priority: NotificationPriority
-    notification_type: str
-    data: Dict[str, Any]
-    created_at: datetime
-    is_read: bool = False
-    scheduled_for: Optional[datetime] = None
-
 class IntelligentAutomationEngine:
     """
     Core engine for intelligent automation and workflow management
     """
     
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
         self.automation_rules: Dict[str, AutomationRule] = {}
-        self.notification_queue: List[SmartNotification] = []
         self.event_handlers: Dict[str, List[Callable]] = {}
         self.logger = logging.getLogger(__name__)
         self.is_running = False
-        
-    def add_automation_rule(self, rule: AutomationRule) -> bool:
-        """Add a new automation rule"""
+        self.load_rules()
+
+    def load_rules(self):
+        """Load automation rules from the database."""
         try:
+            rules = AutomationRule.query.all()
+            self.automation_rules = {rule.id: rule for rule in rules}
+            self.logger.info(f"Loaded {len(self.automation_rules)} automation rules.")
+        except Exception as e:
+            self.logger.error(f"Error loading automation rules: {str(e)}")
+
+    def add_automation_rule(self, rule_data: Dict[str, Any]) -> bool:
+        """Add a new automation rule to the database"""
+        try:
+            rule = AutomationRule(**rule_data)
+            self.db.session.add(rule)
+            self.db.session.commit()
             self.automation_rules[rule.id] = rule
             self.logger.info(f"Added automation rule: {rule.name}")
             return True
@@ -84,13 +69,16 @@ class IntelligentAutomationEngine:
     def remove_automation_rule(self, rule_id: str) -> bool:
         """Remove an automation rule"""
         try:
-            if rule_id in self.automation_rules:
+            rule = AutomationRule.query.get(rule_id)
+            if rule:
+                self.db.session.delete(rule)
+                self.db.session.commit()
                 del self.automation_rules[rule_id]
                 self.logger.info(f"Removed automation rule: {rule_id}")
                 return True
             return False
         except Exception as e:
-            self.logger.error(f"Error removing automation rule: {str(e)}")
+            self.logger.error(f"Error removing automation rule from DB: {str(e)}")
             return False
     
     def register_event_handler(self, event_type: str, handler: Callable):
@@ -191,19 +179,20 @@ class IntelligentAutomationEngine:
     
     async def _send_notification_action(self, action: Dict[str, Any], context_data: Dict[str, Any]):
         """Send a smart notification"""
-        notification = SmartNotification(
-            id=f"notif_{datetime.now().timestamp()}",
-            recipient_id=action.get('recipient_id', context_data.get('user_id')),
-            title=action.get('title', '').format(**context_data),
-            message=action.get('message', '').format(**context_data),
-            priority=NotificationPriority(action.get('priority', 'medium')),
-            notification_type=action.get('notification_type', 'general'),
-            data=context_data,
-            created_at=datetime.now()
-        )
-        
-        self.notification_queue.append(notification)
-        self.logger.info(f"Queued notification: {notification.title}")
+        try:
+            notification = SmartNotification(
+                recipient_id=action.get('recipient_id', context_data.get('user_id')),
+                title=action.get('title', '').format(**context_data),
+                message=action.get('message', '').format(**context_data),
+                priority=NotificationPriority(action.get('priority', 'medium')),
+                notification_type=action.get('notification_type', 'general'),
+                data=context_data
+            )
+            self.db.session.add(notification)
+            self.db.session.commit()
+            self.logger.info(f"Queued notification in DB: {notification.title}")
+        except Exception as e:
+            self.logger.error(f"Error queuing notification in DB: {str(e)}")
     
     async def _update_project_status_action(self, action: Dict[str, Any], context_data: Dict[str, Any]):
         """Update project status"""
@@ -264,18 +253,18 @@ class IntelligentAutomationEngine:
         utilization = (alert_data['current_spend'] / alert_data['budget_limit']) * 100 if alert_data['budget_limit'] > 0 else 0
         
         if utilization >= alert_data['threshold_percentage']:
-            notification = SmartNotification(
-                id=f"budget_alert_{datetime.now().timestamp()}",
-                recipient_id=action.get('recipient_id', context_data.get('project_manager_id')),
-                title=f"Budget Alert: Project {alert_data['project_id']}",
-                message=f"Project has used {utilization:.1f}% of budget ({alert_data['current_spend']}/{alert_data['budget_limit']})",
-                priority=NotificationPriority.HIGH,
-                notification_type='budget_alert',
-                data=alert_data,
-                created_at=datetime.now()
-            )
-            
-            self.notification_queue.append(notification)
+            try:
+                notification = SmartNotification(
+                    recipient_id=action.get('recipient_id', context_data.get('project_manager_id')),
+                    title=f"Budget Alert: Project {alert_data['project_id']}",
+                    message=f"Project has used {utilization:.1f}% of budget ({alert_data['current_spend']}/{alert_data['budget_limit']})",
+                    priority=NotificationPriority.HIGH,
+                    notification_type='budget_alert',
+                    data=alert_data
+                )
+                self.db.session.add(notification)
+            except Exception as e:
+                self.logger.error(f"Error creating budget alert notification: {str(e)}")
     
     async def _escalate_issue_action(self, action: Dict[str, Any], context_data: Dict[str, Any]):
         """Escalate an issue to higher management"""
@@ -303,7 +292,7 @@ class IntelligentAutomationEngine:
                 await self._check_condition_based_rules()
                 
                 # Process notification queue
-                await self._process_notification_queue()
+                # Notification processing is now handled by a separate worker/service
                 
                 # Sleep for a short interval
                 await asyncio.sleep(60)  # Check every minute
@@ -367,25 +356,6 @@ class IntelligentAutomationEngine:
         # For now, we'll skip this as it requires integration with the data layer
         pass
     
-    async def _process_notification_queue(self):
-        """Process pending notifications"""
-        current_time = datetime.now()
-        
-        for notification in self.notification_queue[:]:
-            try:
-                # Check if notification should be sent now
-                if notification.scheduled_for and notification.scheduled_for > current_time:
-                    continue
-                
-                # Send the notification (integrate with notification service)
-                await self._deliver_notification(notification)
-                
-                # Remove from queue
-                self.notification_queue.remove(notification)
-                
-            except Exception as e:
-                self.logger.error(f"Error processing notification {notification.id}: {str(e)}")
-    
     async def _deliver_notification(self, notification: SmartNotification):
         """Deliver a notification to the recipient"""
         # This would integrate with various notification channels
@@ -405,7 +375,7 @@ class IntelligentAutomationEngine:
         
         rule_types = {}
         for rule in self.automation_rules.values():
-            rule_type = rule.trigger_type.value
+            rule_type = rule.trigger_type
             if rule_type not in rule_types:
                 rule_types[rule_type] = 0
             rule_types[rule_type] += 1
@@ -414,7 +384,7 @@ class IntelligentAutomationEngine:
             'total_rules': total_rules,
             'active_rules': active_rules,
             'total_executions': total_executions,
-            'pending_notifications': len(self.notification_queue),
+            'pending_notifications': SmartNotification.query.filter_by(is_read=False).count(),
             'rule_types': rule_types,
             'engine_status': 'running' if self.is_running else 'stopped'
         }
@@ -425,38 +395,44 @@ class ProjectHealthMonitor:
     Monitor project health and trigger automated interventions
     """
     
-    def __init__(self, automation_engine: IntelligentAutomationEngine):
+    def __init__(self, db, automation_engine: IntelligentAutomationEngine):
+        self.db = db
         self.automation_engine = automation_engine
         self.logger = logging.getLogger(__name__)
         
-    def analyze_project_health(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_project_health(self, project: Project) -> Dict[str, Any]:
         """Analyze the health of a project"""
         health_score = 0
         issues = []
         recommendations = []
         
         # Budget health
-        budget_used = project_data.get('budget_used', 0)
-        total_budget = project_data.get('total_budget', 1)
+        budget_used = project.budget_used or 0
+        total_budget = project.total_budget or 1
         budget_utilization = budget_used / total_budget if total_budget > 0 else 0
         
         if budget_utilization > 0.9:
             issues.append("Budget nearly exhausted")
             health_score -= 20
         elif budget_utilization > 0.8:
-            issues.append("Budget usage high")
+            issues.append("Budget usage high.")
             health_score -= 10
         else:
             health_score += 10
         
         # Timeline health
         current_date = datetime.now()
-        start_date = datetime.fromisoformat(project_data.get('start_date', current_date.isoformat()))
-        end_date = datetime.fromisoformat(project_data.get('end_date', current_date.isoformat()))
+        start_date = project.start_date or current_date
+        end_date = project.end_date or current_date
         
-        total_duration = (end_date - start_date).days
+        if isinstance(start_date, str):
+            start_date = datetime.fromisoformat(start_date)
+        if isinstance(end_date, str):
+            end_date = datetime.fromisoformat(end_date)
+
+        total_duration = (end_date - start_date).days if end_date > start_date else 1
         elapsed_duration = (current_date - start_date).days
-        progress_percentage = project_data.get('progress_percentage', 0)
+        progress_percentage = project.progress_percentage or 0
         
         if total_duration > 0:
             expected_progress = (elapsed_duration / total_duration) * 100
@@ -472,8 +448,8 @@ class ProjectHealthMonitor:
                 health_score += 15
         
         # Team health
-        team_size = project_data.get('team_size', 0)
-        active_members = project_data.get('active_members', 0)
+        team_size = project.team_size or 0
+        active_members = project.active_members or 0
         
         if team_size > 0:
             team_utilization = active_members / team_size
@@ -484,13 +460,16 @@ class ProjectHealthMonitor:
                 health_score += 10
         
         # Quality metrics
-        bug_count = project_data.get('open_bugs', 0)
+        bug_count = project.open_bugs or 0
         if bug_count > 10:
             issues.append("High number of open bugs")
             health_score -= 10
         
         # Normalize health score
         health_score = max(0, min(100, health_score + 50))  # Base score of 50
+        project.health_score = health_score
+        project.health_status = self._get_health_status(health_score)
+        self.db.session.commit()
         
         # Generate recommendations
         if budget_utilization > 0.8:
@@ -527,9 +506,14 @@ class ProjectHealthMonitor:
         else:
             return "critical"
     
-    async def monitor_project(self, project_id: str, project_data: Dict[str, Any]):
+    async def monitor_project(self, project_id: str):
         """Monitor a project and trigger automated responses"""
-        health_analysis = self.analyze_project_health(project_data)
+        project = Project.query.get(project_id)
+        if not project:
+            self.logger.error(f"Project with ID {project_id} not found.")
+            return
+
+        health_analysis = self.analyze_project_health(project)
         
         # Trigger events based on health status
         if health_analysis['health_status'] in ['poor', 'critical']:
@@ -556,159 +540,3 @@ class ProjectHealthMonitor:
                 })
         
         return health_analysis
-
-
-# Example automation rules setup
-def setup_default_automation_rules(automation_engine: IntelligentAutomationEngine):
-    """Setup default automation rules for the system"""
-    
-    # Rule 1: Budget alert when 80% used
-    budget_alert_rule = AutomationRule(
-        id="budget_alert_80",
-        name="Budget Alert at 80%",
-        trigger_type=AutomationTrigger.EVENT_BASED,
-        conditions={
-            'event_type': 'budget_update',
-            'budget_utilization': {'operator': 'greater_than', 'value': 0.8}
-        },
-        actions=[
-            {
-                'type': 'send_notification',
-                'recipient_id': '{project_manager_id}',
-                'title': 'Budget Alert: {project_name}',
-                'message': 'Project has used {budget_utilization:.1%} of allocated budget',
-                'priority': 'high',
-                'notification_type': 'budget_alert'
-            },
-            {
-                'type': 'send_email',
-                'to': '{project_manager_email}',
-                'subject': 'Budget Alert: {project_name}',
-                'body': 'Your project {project_name} has exceeded 80% of its allocated budget. Please review expenses and take necessary action.'
-            }
-        ]
-    )
-    
-    # Rule 2: Daily project status update
-    daily_status_rule = AutomationRule(
-        id="daily_status_update",
-        name="Daily Project Status Update",
-        trigger_type=AutomationTrigger.TIME_BASED,
-        conditions={
-            'schedule': {
-                'specific_time': '09:00',
-                'days_of_week': [0, 1, 2, 3, 4]  # Monday to Friday
-            }
-        },
-        actions=[
-            {
-                'type': 'send_notification',
-                'recipient_id': 'all_project_managers',
-                'title': 'Daily Project Status Report',
-                'message': 'Your daily project status report is ready for review',
-                'priority': 'medium',
-                'notification_type': 'status_update'
-            }
-        ]
-    )
-    
-    # Rule 3: Milestone deadline reminder
-    milestone_reminder_rule = AutomationRule(
-        id="milestone_deadline_reminder",
-        name="Milestone Deadline Reminder",
-        trigger_type=AutomationTrigger.TIME_BASED,
-        conditions={
-            'schedule': {
-                'interval_minutes': 1440  # Daily check
-            }
-        },
-        actions=[
-            {
-                'type': 'send_notification',
-                'recipient_id': '{assignee_id}',
-                'title': 'Milestone Deadline Approaching',
-                'message': 'Milestone "{milestone_name}" is due in {days_remaining} days',
-                'priority': 'medium',
-                'notification_type': 'deadline_reminder'
-            }
-        ]
-    )
-    
-    # Rule 4: Project health critical alert
-    health_critical_rule = AutomationRule(
-        id="project_health_critical",
-        name="Project Health Critical Alert",
-        trigger_type=AutomationTrigger.EVENT_BASED,
-        conditions={
-            'event_type': 'project_health_critical'
-        },
-        actions=[
-            {
-                'type': 'send_notification',
-                'recipient_id': '{project_manager_id}',
-                'title': 'CRITICAL: Project Health Alert',
-                'message': 'Project {project_id} health is critical. Immediate attention required.',
-                'priority': 'critical',
-                'notification_type': 'health_alert'
-            },
-            {
-                'type': 'escalate_issue',
-                'escalation_level': 2,
-                'reason': 'Project health critical - requires management intervention'
-            }
-        ]
-    )
-    
-    # Add rules to engine
-    automation_engine.add_automation_rule(budget_alert_rule)
-    automation_engine.add_automation_rule(daily_status_rule)
-    automation_engine.add_automation_rule(milestone_reminder_rule)
-    automation_engine.add_automation_rule(health_critical_rule)
-
-
-# Example usage
-async def main():
-    """Example usage of the intelligent automation system"""
-    # Create automation engine
-    automation_engine = IntelligentAutomationEngine()
-    
-    # Setup default rules
-    setup_default_automation_rules(automation_engine)
-    
-    # Create project health monitor
-    health_monitor = ProjectHealthMonitor(automation_engine)
-    
-    # Example: Trigger a budget update event
-    await automation_engine.trigger_event('budget_update', {
-        'project_id': 'proj_001',
-        'project_name': 'AI Chatbot Development',
-        'project_manager_id': 'user_001',
-        'project_manager_email': 'manager@example.com',
-        'budget_utilization': 0.85,
-        'current_spend': 42500,
-        'total_budget': 50000
-    })
-    
-    # Example: Monitor project health
-    sample_project = {
-        'project_id': 'proj_001',
-        'start_date': '2024-01-01',
-        'end_date': '2024-06-01',
-        'budget_used': 42500,
-        'total_budget': 50000,
-        'progress_percentage': 60,
-        'team_size': 5,
-        'active_members': 4,
-        'open_bugs': 8
-    }
-    
-    health_result = await health_monitor.monitor_project('proj_001', sample_project)
-    print(f"Project health: {health_result}")
-    
-    # Get automation statistics
-    stats = automation_engine.get_automation_statistics()
-    print(f"Automation stats: {stats}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-

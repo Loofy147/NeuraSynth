@@ -28,3 +28,12 @@ To run the tests, run the following command:
 ```
 python -m unittest discover tests
 ```
+
+## API Endpoints
+
+### Automation
+
+-   `POST /api/v1/automation/rules`: Add a new automation rule.
+-   `DELETE /api/v1/automation/rules/<rule_id>`: Remove an automation rule.
+-   `GET /api/v1/automation/stats`: Get automation engine statistics.
+-   `POST /api/v1/projects/<project_id>/monitor`: Analyze and report project health.
